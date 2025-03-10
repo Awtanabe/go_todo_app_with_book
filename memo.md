@@ -30,3 +30,49 @@ net.Listenerを利用
 ```
 go run main.go 8080
 ```
+
+### 開発環境を整える p.140
+
+dockerを利用
+
+.dockerignore
+
+- ⭐️マルチビルドのポイント！！！
+
+docker-composeで devを見たい場合は、targetで指定できる
+
+```
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      target: dev  # ← ここで dev ステージを指定
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    command: ["air"]
+```
+
+- dockerコマンド
+
+```
+// ビルド
+docker-compose build --no-cache
+
+// 起動 target devなのでdev指定
+
+docker-compose up
+
+localhost:1800/hello
+```
+
+
+### makefile p.145
+
+コピーした
+
+### github actions p147 スキップ
+
+### httpサーバー疎結合にする
