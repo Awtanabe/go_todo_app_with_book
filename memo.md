@@ -18,3 +18,15 @@ go get -u golang.org/x/sync
 ```
 
 - eg.Go ゴルーチンの並列管理を簡潔にできるらしい
+
+- ⭐️テストコードはスキップする
+
+
+### ポート変更可能に
+
+net.Listenerを利用
+
+コマンドで実行
+```
+go run main.go 8080
+```
