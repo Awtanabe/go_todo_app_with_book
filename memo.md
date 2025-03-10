@@ -80,3 +80,22 @@ localhost:1800/hello
 #### 環境変数から設定をロードする p152
 
 port とかをハードコーディングしてる点が、依存度が高いのか
+
+- 環境変数
+  - 記事 何パターンかある
+    - https://zenn.dev/kurusugawa/articles/golang-env-lib
+  - 全体像
+    - ライブラリ入れる
+    - 環境変数を参照する
+    - docker-composeで環境変数を渡す
+      - envファイルを作成して参照でもできた気がする
+
+```
+go get github.com/caarlos0/env/v10
+```
+
+- configを作成した
+  - New関数で構造体を返却して利用
+    ```
+      cfg := &Config{} // これはデフォルトがあるので何も引数に渡していない
+    ```
