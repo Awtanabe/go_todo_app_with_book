@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -21,6 +23,9 @@ import (
 // 5. シャットファウンの実行
 // 6 eg.Wait
 func run(ctx context.Context) error {
+
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
 	cfg, err := config.New()
 	if err != nil {
 		return err
@@ -39,6 +44,7 @@ func run(ctx context.Context) error {
 	// <-ctx.Done()でシャットファウンを実行する可能性があるs
 	s := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// time.Sleep(5 * time.Second)
 			fmt.Fprintf(w, "Hello world %s", r.URL.Path[1:])
 		}),
 	}

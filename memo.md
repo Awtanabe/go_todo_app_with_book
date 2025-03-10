@@ -99,3 +99,6 @@ go get github.com/caarlos0/env/v10
     ```
       cfg := &Config{} // これはデフォルトがあるので何も引数に渡していない
     ```
+
+### シグナルをハンドリングする
+
