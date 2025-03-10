@@ -102,3 +102,14 @@ go get github.com/caarlos0/env/v10
 
 ### シグナルをハンドリングする
 
+
+### Server構造体を定義する p159
+
+server.go
+
+### ルーティング定義を分離したNewMux p162
+
+mux.go
+
+### run関数のリファクタリング p164
+

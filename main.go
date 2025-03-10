@@ -6,12 +6,9 @@ import (
 	"go_todo_app/config"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"golang.org/x/sync/errgroup"
 )
 
 // contextで外部からのキャンセル操作で、サーバーを終了しようとしてる
@@ -23,7 +20,6 @@ import (
 // 5. シャットファウンの実行
 // 6 eg.Wait
 func run(ctx context.Context) error {
-
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	cfg, err := config.New()
@@ -34,37 +30,16 @@ func run(ctx context.Context) error {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 
 	if err != nil {
-		log.Fatalf("faild to listedn port %d", cfg.Port, err)
+		log.Fatalf("failed to listen on port %d: %v", cfg.Port, err)
 	}
 
 	url := fmt.Sprintf("http://%s", l.Addr().String())
 
 	log.Printf("start with %v", url)
-	// shutdownメソッドがあるので、http.Serverを利用する
-	// <-ctx.Done()でシャットファウンを実行する可能性があるs
-	s := &http.Server{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// time.Sleep(5 * time.Second)
-			fmt.Fprintf(w, "Hello world %s", r.URL.Path[1:])
-		}),
-	}
 
-	eg, ctx := errgroup.WithContext(ctx)
-
-	eg.Go(func() error {
-		if err := s.Serve(l); err != nil &&
-			err != http.ErrServerClosed {
-			log.Printf("failed to colse %+v", err)
-			return err
-		}
-		return nil
-	})
-
-	<-ctx.Done()
-	if err := s.Shutdown(context.Background()); err != nil {
-		log.Printf("failds to shutwodn %+v", err)
-	}
-	return eg.Wait()
+	mux := NewMux()
+	s := NewServer(l, mux)
+	return s.Run(ctx)
 }
 
 // err := http.ListenAndServe(":18080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
