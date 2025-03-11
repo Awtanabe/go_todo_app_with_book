@@ -283,6 +283,13 @@ chi.NewRouterで利用
 ```
 database/sql
 
+// gorm
+
+go get -u gorm.io/gorm
+go get -u gorm.io/driver/mysql
+
+
+
 go get -u github.com/go-sql-driver/mysql
 
 go install github.com/k0kubun/sqldef/cmd/mysqldef@latest
@@ -368,3 +375,18 @@ CREATE TABLE `task`
 ) Engine=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='タスク';
 
 ```
+
+### 動作確認
+
+
+```
+ curl -i -X GET http://localhost:18000/tasks
+
+ curl -i -X POST -H "Content-Type: application/json" -d '{"title":"タスク4"}' http://localhost:18000/tasks
+
+  curl -i -X POST -H "Content-Type: application/json" -d '{"title":"タスク6"}' http://localhost:18000/tasks
+```
+
+### ハンドラーとビジネスロジックを分離する p206
+
+service層

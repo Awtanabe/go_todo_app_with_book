@@ -18,7 +18,7 @@ type task struct {
 
 func (lt *ListTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	tasks, err := lt.Store.All()
+	tasks, err := NewTaskService(lt.Store).ListTask(ctx)
 
 	if err != nil {
 		RespondJSON(ctx, w, &ErrResponse{

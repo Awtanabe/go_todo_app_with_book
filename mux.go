@@ -18,7 +18,7 @@ func NewMux(db *gorm.DB) http.Handler {
 	})
 	taskStore := store.NewTaskStore(db)
 	v := validator.New()
-	at := &handler.AddTask{Store: store.Tasks, Validator: v}
+	at := &handler.AddTask{Store: taskStore, Validator: v}
 	mux.Post("/tasks", at.ServeHTTP)
 	lt := &handler.ListTask{Store: taskStore}
 	mux.Get("/tasks", lt.ServeHTTP)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go_todo_app/entity"
 	"go_todo_app/store"
+	"log"
 	"net/http"
 	"time"
 
@@ -18,6 +19,7 @@ type AddTask struct {
 }
 
 func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Print("xxx")
 	ctx := r.Context()
 	var b struct {
 		Title string `json:"title" validate:"required"`
@@ -34,6 +36,7 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// バリデーションエラーs
 	err := at.Validator.Struct(b)
 	if err != nil {
+		log.Print("aaa")
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),
 		}, http.StatusBadRequest)
@@ -41,13 +44,16 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := &entity.Task{
-		Title:   b.Title,
-		Status:  entity.TaskStatusTodo,
-		Created: time.Now(),
+		Title:    b.Title,
+		Status:   entity.TaskStatusTodo,
+		Created:  time.Now(),
+		Modified: time.Now(),
 	}
 
-	id, err := store.Tasks.Add(t)
+	task, err := NewTaskService(at.Store).AddTask(ctx, t)
 	if err != nil {
+		log.Print("bbb")
+
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),
 		}, http.StatusInternalServerError)
@@ -56,6 +62,6 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	resp := struct {
 		ID int `json:"id"`
-	}{ID: int(id)}
+	}{ID: int(task.ID)}
 	RespondJSON(ctx, w, resp, http.StatusOK)
 }
