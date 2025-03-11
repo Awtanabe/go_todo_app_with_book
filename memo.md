@@ -1,3 +1,7 @@
+### コード
+
+https://github.com/budougumi0617/go_todo_app/tree/main
+
 ### http server作成 p127
 
 - main.go
@@ -113,3 +117,143 @@ mux.go
 
 ### run関数のリファクタリング p164
 
+### エンドポイントを追加 p165
+
+
+#### entuty.Task型の定義と永続化方法の仮実装(dbを使わない)
+
+
+- defined type
+https://zenn.dev/nobishii/articles/defined_types
+
+⭐️使うシーン
+```
+	var id int = 1
+
+   // ok
+	_ = Task{ID: TaskID(id)}
+  // ng 別の型で定義されているから
+	_ = Task{ID: id}
+
+  // ok  リテラルはOK！！ 型推論
+	_ = Task{ID: 1}
+```
+
+
+### ⭐️データ型の理解
+
+
+- type Task []*Task
+  - Task は *Task のスライス
+
+```
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Task はタスクの構造体
+type Task struct {
+	Name     string  `json:"name"`
+	SubTasks []*Task `json:"sub_tasks"`
+}
+
+func main() {
+	// タスクの作成
+	rootTask := &Task{Name: "Root Task"}
+
+	// サブタスクを作成
+	subTask1 := &Task{Name: "Sub Task 1"}
+	subTask2 := &Task{Name: "Sub Task 2"}
+
+	// サブタスクの中にさらにサブタスクを追加
+	subTask1_1 := &Task{Name: "Sub Task 1-1"}
+	subTask1_2 := &Task{Name: "Sub Task 1-2"}
+	subTask2_1 := &Task{Name: "Sub Task 2-1"}
+
+	subTask1.SubTasks = []*Task{subTask1_1, subTask1_2}
+	subTask2.SubTasks = []*Task{subTask2_1}
+
+	// ルートタスクにサブタスクを追加
+	rootTask.SubTasks = []*Task{subTask1, subTask2}
+
+	// JSON 形式で出力
+	jsonData, err := json.MarshalIndent(rootTask, "", "  ")
+	if err != nil {
+		fmt.Println("JSON変換エラー:", err)
+		return
+	}
+	fmt.Println(string(jsonData))
+}
+
+```
+
+```
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Task はタスクの構造体
+type Task struct {
+	Name     string  `json:"name"`
+	SubTasks []*Task `json:"sub_tasks"`
+}
+
+func main() {
+	// ルートタスク作成
+	rootTask := &Task{Name: "Root Task"}
+
+	// サブタスク作成
+	subTask1 := &Task{Name: "Sub Task 1"}
+	subTask2 := &Task{Name: "Sub Task 2"}
+
+	// `append` を使って子タスクを追加
+	rootTask.SubTasks = append(rootTask.SubTasks, subTask1, subTask2)
+
+	// さらに `subTask1` にサブタスクを追加
+	subTask1_1 := &Task{Name: "Sub Task 1-1"}
+	subTask1_2 := &Task{Name: "Sub Task 1-2"}
+	subTask1.SubTasks = append(subTask1.SubTasks, subTask1_1, subTask1_2)
+
+	// `subTask2` にもサブタスクを追加
+	subTask2_1 := &Task{Name: "Sub Task 2-1"}
+	subTask2.SubTasks = append(subTask2.SubTasks, subTask2_1)
+
+	// JSON 形式で出力
+	jsonData, err := json.MarshalIndent(rootTask, "", "  ")
+	if err != nil {
+		fmt.Println("JSON変換エラー:", err)
+		return
+	}
+	fmt.Println(string(jsonData))
+}
+
+```
+
+### ヘルパーの実装⭐️ p169
+
+- unmarshal
+  - jsonを扱う感じのやつだった気がする
+
+
+### タスクを登録する ⭐️172p(バリデーション)
+
+
+- バリデーション
+  1. ライブラリを入れる
+  2. AddTask構造体を作成、バリデーターをDIで保持(バリデーションの実行)
+  2. paramsデータの構造体を定義する(requredなどのデータのチェック)
+  3. jsonDecoderでチェク
+    ```
+      // r.Bodyでrequest bodyを取得。decodeで解析かな？
+      if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+        return errors.New(err.Error())
+      }
+      // 処理をする
+      return 最終的なレスポンス
+    ```
