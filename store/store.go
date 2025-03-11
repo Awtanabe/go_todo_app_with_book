@@ -3,31 +3,37 @@ package store
 import (
 	"errors"
 	"go_todo_app/entity"
+
+	"gorm.io/gorm"
 )
 
 var (
-	Tasks       = &TaskStore{Tasks: map[entity.TaskID]*entity.Task{}}
+	Tasks       = &TaskStore{db: &gorm.DB{}}
 	ErrNotFound = errors.New("not found")
 )
 
 type TaskStore struct {
 	LastID entity.TaskID
-	Tasks  map[entity.TaskID]*entity.Task
+	db     *gorm.DB
+}
+
+func NewTaskStore(db *gorm.DB) *TaskStore {
+	return &TaskStore{db: db}
 }
 
 func (ts *TaskStore) Add(t *entity.Task) (entity.TaskID, error) {
 	ts.LastID++
 	t.ID = ts.LastID
-	ts.Tasks[t.ID] = t
 	return t.ID, nil
 }
 
-func (ts *TaskStore) All() entity.Tasks {
-	tasks := make(entity.Tasks, 0, len(ts.Tasks)) // スライスの正しい初期化
+func (ts *TaskStore) All() (entity.Tasks, error) {
+	tasks := []entity.Task{}
 
-	for _, t := range ts.Tasks { // i ではなく、順番関係なく append する
-		tasks = append(tasks, t)
+	if err := ts.db.Find(&tasks).Error; err != nil {
+
+		return nil, err
 	}
 
-	return tasks
+	return tasks, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go_todo_app/config"
+	"go_todo_app/store"
 	"log"
 	"net"
 	"os"
@@ -26,6 +27,11 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	db, err := store.New(context.Background(), cfg)
+
+	if err != nil {
+		return err
+	}
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 
@@ -37,7 +43,7 @@ func run(ctx context.Context) error {
 
 	log.Printf("start with %v", url)
 
-	mux := NewMux()
+	mux := NewMux(db)
 	s := NewServer(l, mux)
 	return s.Run(ctx)
 }

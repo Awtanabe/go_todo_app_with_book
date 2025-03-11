@@ -23,4 +23,8 @@ type Task struct {
 
 // 配列
 // time がバイト数大きい見たい だからTaskはポインタなんだろうな
-type Tasks []*Task
+type Tasks []Task
+
+func (o Task) TableName() string {
+	return "todo.task"
+}

@@ -257,3 +257,114 @@ func main() {
       // 処理をする
       return 最終的なレスポンス
     ```
+
+- データを入れる
+```
+	t := store.Tasks
+	t.Tasks[0] = &entity.Task{ID: 1, Title: "テスト", Status: entity.TaskStatusDosing, Created: time.Now()}
+	lt := &handler.ListTask{Store: t}
+
+```
+
+### http ハンドラーをルーティングに設定 p179
+
+```
+go get -u github.com/go-chi/chi/v5
+
+chi.NewRouterで利用
+```
+
+### mysql 環境構築 p184
+
+#### 必要なもの
+
+- パッケージ
+
+```
+database/sql
+
+go get -u github.com/go-sql-driver/mysql
+
+go install github.com/k0kubun/sqldef/cmd/mysqldef@latest
+```
+
+- mysql.cnf
+
+```
+[mysql]
+default_character_set=utf8mb4
+
+```
+
+- mysqld.cnf
+
+```
+[mysqld]
+default-authentication-plugin=mysql_native_password
+character_set_server=utf8mb4
+sql_mode=TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY
+
+```
+
+- compose
+
+```
+TODO_ENV: dev
+PORT: 8080
+
+TODO_DB_HOST: todo-db
+TODO_DB_PORT: 3306
+TODO_DB_USER: todo
+TODO_DB_PASSWORD: todo
+TODO_DB_DATABASE: todo
+
+volumes:
+  - .:/app
+
+
+todo-db:
+  image: mysql:8.0.29
+  platform: linux/amd64
+  container_name: todo-db
+  environment:
+    MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    MYSQL_USER: todo
+    MYSQL_PASSWORD: todo
+    MYSQL_DATABASE: todo
+  volumes:
+    - todo-db-data:/var/lib/mysql
+    - $PWD/_tools/mysql/conf.d:/etc/mysql/conf.d:cached
+  ports:
+    - "33306:3306"
+
+volumes:
+  todo-db-data:
+
+```
+
+- sql
+
+```
+CREATE TABLE `user`
+(
+    `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ユーザーの識別子',
+    `name`      VARCHAR(20) NOT NULL COMMENT 'ユーザー名',
+    `password`  VARCHAR(80) NOT NULL COMMENT 'パスワードハッシュ',
+    `role`      VARCHAR(80) NOT NULL COMMENT 'ロール',
+    `created`   DATETIME(6) NOT NULL COMMENT 'レコード作成日時',
+    `modified`  DATETIME(6) NOT NULL COMMENT 'レコード修正日時',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uix_name` (`name`) USING BTREE
+) Engine=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ユーザー';
+
+CREATE TABLE `task`
+(
+    `id`        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'タスクの識別子',
+    `title`     VARCHAR(128) NOT NULL COMMENT 'タスクのタイトル',
+    `status`    VARCHAR(20) NOT NULL COMMENT 'タスクの状態',
+    `created`   DATETIME(6) NOT NULL COMMENT 'レコード作成日時',
+    `modified`  DATETIME(6) NOT NULL COMMENT 'レコード修正日時',
+    PRIMARY KEY (`id`)
+) Engine=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='タスク';
+
+```
