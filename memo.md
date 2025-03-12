@@ -385,8 +385,16 @@ CREATE TABLE `task`
  curl -i -X POST -H "Content-Type: application/json" -d '{"title":"タスク4"}' http://localhost:18000/tasks
 
   curl -i -X POST -H "Content-Type: application/json" -d '{"title":"タスク6"}' http://localhost:18000/tasks
+
+
+ curl -i -X POST -H "Content-Type: application/json" -d '{"name":"タスク4", "password":"password", "role": "管理者"}' http://localhost:18000/register
+
 ```
 
 ### ハンドラーとビジネスロジックを分離する p206
 
 service層
+
+
+### ユーザー登録 p214
+

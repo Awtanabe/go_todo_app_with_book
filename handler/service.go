@@ -14,6 +14,10 @@ type AddTaskService interface {
 	AddTask(ctx context.Context, title string) (entity.Task, error)
 }
 
+type RegisterUserService interface {
+	RegisterUser(ctx context.Context, name, password, role string) (*entity.User, error)
+}
+
 type TaskService struct {
 	taskStore *store.TaskStore
 }
