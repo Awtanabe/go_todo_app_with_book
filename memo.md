@@ -387,7 +387,7 @@ CREATE TABLE `task`
   curl -i -X POST -H "Content-Type: application/json" -d '{"title":"タスク6"}' http://localhost:18000/tasks
 
 
- curl -i -X POST -H "Content-Type: application/json" -d '{"name":"タスク4", "password":"password", "role": "管理者"}' http://localhost:18000/register
+ curl -i -X POST -H "Content-Type: application/json" -d '{"name":"マイク", "password":"password", "role": "管理者"}' http://localhost:18000/register
 
 ```
 
@@ -398,3 +398,62 @@ service層
 
 ### ユーザー登録 p214
 
+
+### p223 Redisの準備
+
+- 作業
+  - composeで起動
+	- アプリケーションコード
+	  - store/kvs.goを作成
+		- 環境変数
+
+### jwtで行う署名の準備 p230
+
+- 秘密鍵、公開鍵
+
+openssl genrsa 4096 > secret.pem
+openssl rsa -pubout < secret.pem > public.pem
+
+- jwtを用いてアクセストークン作成
+
+json web token
+=> 署名(rs256)と暗号化に関わる関連仕様がある
+
+https://qiita.com/asagohan2301/items/cef8bcb969fef9064a5c#2-jwt%E8%AA%8D%E8%A8%BC%E3%81%A8%E3%81%AF
+
+- jwtとは
+トークンベース認証
+=> ユーザーはログイン情報を保持しない
+=> 毎回のリクエストに一緒に送る
+=> 改ざんに検知できる
+
+- 作り方
+=> ヘッダ.ペイロード.署名
+
+=> 前半(ヘッダ.ペイロード)
+ヘッダ: アルゴリズムとトークンタイプ
+ペイロード: sub(ユーザーを一意に特定するための識別子), exp: 有効期限
+※パスワードなどは保持しないs
+=> 後半(署名)
+指定したアルゴリズムで署名する
+
+- jwtの検証
+
+- jwt認証の流れ
+
+1. ユーザー: 情報をpost
+2. API: jwtの署名 && OKからjwtを発行しレスポンス
+3. jwtで検証する
+※ユーザーはjwtをリクエストヘッダーに自動で含める => 色々あるけど
+=> HttpOnly Cookieが楽だろな (ブラウザーのcookieに入れる)
+
+- 必要なパッケージ
+
+```
+go get github.com/lestrrat-go/jws/v2
+go get github.com/google/uuid
+```
+
+### context.Context でjwtを引き回す p241
+
+jwt.goに実装
