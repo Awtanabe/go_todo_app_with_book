@@ -2,6 +2,45 @@
 
 https://github.com/budougumi0617/go_todo_app/tree/main
 
+### イメージ
+
+- ディレクトリ
+  - entity
+    - ドメインを
+  - auth
+    - 認証
+    - ミドルウェアで
+  - config
+    - 環境変数
+  - handler
+    - アクション
+  - service
+    - usecase
+    - interface
+  - store
+    - これは miidasで言うところの xx_repo.go
+    - repogitory.go
+      - 実態
+    - user.go
+      - レシーバーを持った関数
+- 暗号化
+  - crpt
+- 認証
+  - jwt
+    - ログインする
+    - tokenを発行する。http onlyでクッキーに保持させる
+    - アクセス制限
+      - ミドルウェアでチェック
+        - jwtとredisのデータと照合して判定
+      - contextに、ユーザーの情報を引き回す
+- mux理解
+  - main, server, mux理解する
+  - http/netパッケージでサーバー
+    - https://qiita.com/BitterBamboo/items/6119f7986a04c5a0ac57
+  - chiはルーティングのミドルウェアらしい
+    - https://github.com/go-chi/chi
+- テストコード
+
 ### http server作成 p127
 
 - main.go
@@ -389,6 +428,8 @@ CREATE TABLE `task`
 
  curl -i -X POST -H "Content-Type: application/json" -d '{"name":"マイク", "password":"password", "role": "管理者"}' http://localhost:18000/register
 
+  curl -i -X POST -H "Content-Type: application/json" -d '{"name":"マイク", "password":"password"}' http://localhost:18000/login
+
 ```
 
 ### ハンドラーとビジネスロジックを分離する p206
@@ -447,6 +488,12 @@ https://qiita.com/asagohan2301/items/cef8bcb969fef9064a5c#2-jwt%E8%AA%8D%E8%A8%B
 ※ユーザーはjwtをリクエストヘッダーに自動で含める => 色々あるけど
 => HttpOnly Cookieが楽だろな (ブラウザーのcookieに入れる)
 
+- jwt ログインイメージ
+  - ログインする
+  - jwttokenをクッキーで有効期限がなくなるまで使う
+  - 他のエンドポイントでtoken利用
+    - ミドルウェアで検証
+
 - 必要なパッケージ
 
 ```
@@ -457,3 +504,62 @@ go get github.com/google/uuid
 ### context.Context でjwtを引き回す p241
 
 jwt.goに実装
+
+
+### repogitory
+
+// repogitoryの実態
+store/repogitory.go
+
+
+// store.go
+// user.go でクエリをかく
+
+// handler/service.go
+interfaceを書いてる => ここじゃなさそう
+
+### エンドポイントの保護
+
+- taskテーブル
+
+```
+CREATE TABLE `task`
+(
+    `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'タスクの識別子',
+    `user_id`    BIGINT UNSIGNED NOT NULL COMMENT 'タスクを作成したユーザーの識別子',
+    `title`      VARCHAR(128) NOT NULL COMMENT 'タスクのタイトル',
+    `status`     VARCHAR(20) NOT NULL COMMENT 'タスクの状態',
+    `created`    DATETIME(6) NOT NULL COMMENT 'レコード作成日時',
+    `modified`   DATETIME(6) NOT NULL COMMENT 'レコード修正日時',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_user_id`
+        FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+        ON DELETE RESTRICT ON UPDATE RESTRICT
+) Engine=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='タスク';
+
+```
+
+### 動作確認 adminはスキップ
+
+
+```
+// user作成
+curl -X POST localhost:18000/register -d '{"name": "normal_user", "password":"password", "role":"user"}'
+
+// ログイン
+curl -X POST localhost:18000/login -d '{"name": "normal_user", "password":"password"}'
+
+// アクセストークンをローカルに
+export TODO_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDE4MDEwMTksImlhdCI6MTc0MTc5OTIxOSwiaXNzIjoiZ2l0aHViLmNvbS9idWRvdWd1bWkwNjE3L2dvX3RvZG9fYXBwIiwianRpIjoiYzY4ZWJiYjItNDUyOS00ZTU0LThkNmItMzAxNzIwNWE1NzQ1Iiwicm9sZSI6InVzZXIiLCJzdWIiOiJhY2Nlc3NfdG9rZW4iLCJ1c2VyX25hbWUiOiJub3JtYWxfdXNlciJ9.fgAHJjNk1xI8jXW0lhar9Fk21oAQDtVhhIVSM2ffWrvCGwWLdfdTzXHaoEvZtogg8_A765u9gONDOwH327Ko74sJvb3l_Uh1KB8JJyFrI3M4ZfPpl-THMevPWHjBmlD0DnBZqmHUSzsFSZ7-3S5uS--CAkleFXK3q27_sBAhA-O-fKY-6syGTSE6AcwgXUEyXBLgG2B4T05KjP2Px3uoZG7VoiuHBDPJ-Kfe25VKHDDvqQGWLHPwEwl00T5NpqaVwzZNqbmpBST_I50vcDeJVo1IOXisoPfVpoEpEv852iEXlxbLBNkabReCXKKh9L6tLLdAHoDfqeDn9Z8gnHF3-9WvH69QRScTd690ipsjDWqkkXQKHOZFLBpiihJGhlfho8YNJ-ZhM6MmM4a9SWf17jmw0iznHy8Y54TrRjLhuhD4qm8i_GSrU4zwuPdGm-Lx41gPLgWZxDRChfqlrUjLP_smQ-8X3A1RlKAGrXUpGmaC4b4MhjuDYEkFH9DmyedcG6QxoblUeQXBO2taZSKClVFqiZGPAOkYSqgqZ1gCr2ShDvwMZUttLejsmp__M9amqaMrNb-pWvJiivh6XZsAnIGIx6arivSbtkp0ZBh6ua1LuUAoT82JIbfO7fkJFhJiKZO9G_y7bn4HjBGJCkYizxerQLotRbP4-P7N44MKMJU
+
+// 登録
+
+curl -X POST -H "Authorization: Bearer $TODO_TOKEN" localhost:18000/tasks -d '{"title": "タスク1"}'
+curl -X POST -H "Authorization: Bearer $TODO_TOKEN" localhost:18000/tasks -d '{"title": "タスク2"}'
+
+
+// 作成
+curl -X GET -H "Authorization: Bearer $TODO_TOKEN" localhost:18000/tasks
+
+curl -X GET localhost:18000/tasks
+```

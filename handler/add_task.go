@@ -3,11 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"go_todo_app/entity"
 	"go_todo_app/store"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator"
 )
@@ -43,14 +41,7 @@ func (at *AddTask) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := &entity.Task{
-		Title:    b.Title,
-		Status:   entity.TaskStatusTodo,
-		Created:  time.Now(),
-		Modified: time.Now(),
-	}
-
-	task, err := NewTaskService(at.Store).AddTask(ctx, t)
+	task, err := NewTaskService(at.Store).AddTask(ctx, b.Title)
 	if err != nil {
 		log.Print("bbb")
 

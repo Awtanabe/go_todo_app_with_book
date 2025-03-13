@@ -27,11 +27,10 @@ func (ts *TaskStore) Add(t *entity.Task) (*entity.Task, error) {
 	return t, nil
 }
 
-func (ts *TaskStore) All() (entity.Tasks, error) {
+func (ts *TaskStore) All(id entity.UserID) (entity.Tasks, error) {
 	tasks := []entity.Task{}
 
-	if err := ts.db.Find(&tasks).Error; err != nil {
-
+	if err := ts.db.Where("user_id = ?", id).Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 

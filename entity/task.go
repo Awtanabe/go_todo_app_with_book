@@ -17,6 +17,7 @@ const (
 type Task struct {
 	ID       TaskID     `json:"id"`
 	Title    string     `json:"title"`
+	UserID   UserID     `gorm:"column:user_id"`
 	Status   TaskStatus `json:"status"`
 	Created  time.Time  `json:"created"`
 	Modified time.Time  `json:"modified"`

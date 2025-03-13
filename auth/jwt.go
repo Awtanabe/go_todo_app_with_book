@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	_ "embed" // 追加
 	"fmt"
 	"go_todo_app/entity"
 	"net/http"
@@ -81,6 +82,7 @@ func (j *JWTer) GenerateToken(ctx context.Context, u entity.User) ([]byte, error
 		return nil, fmt.Errorf("GetToken: failed to build token: %w", err)
 	}
 
+	// 保存してる tokenのデータを
 	if err := j.Store.Save(ctx, tok.JwtID(), u.ID); err != nil {
 		return nil, err
 	}
@@ -115,16 +117,21 @@ func (j *JWTer) GetToken(ctx context.Context, r *http.Request) (jwt.Token, error
 }
 
 func (j *JWTer) FillContext(r *http.Request) (*http.Request, error) {
+	// jwt tokenをリクエストヘッダーからとる？
 	token, err := j.GetToken(r.Context(), r)
 	if err != nil {
 		return nil, err
 	}
+	//redisにあるtokenを取得? 何してるんだ
+	// j.Store.Saveでjwtの情報を保存してそう⭐️ここでトークンの情報を認証してそうだ
 	uid, err := j.Store.Load(r.Context(), token.JwtID())
 	if err != nil {
 		return nil, err
 	}
+	// コンテキストにユーザーの情報をセットしてる
 	ctx := SetUserID(r.Context(), uid)
 
+	// 権限もだ
 	ctx = SetRole(ctx, token)
 	clone := r.Clone(ctx)
 	return clone, nil
